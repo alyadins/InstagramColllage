@@ -18,4 +18,8 @@
     <string name="user_not_found">Пользователь не найден</string>
 
     <string name="network_error">Проверьте подключение</string>
+    <string name="choose_photo">Выберите фото</string>
+    <string name="selected_photo"> выбрано</string>
+
+    <string name="long_press_tip">Longpress для выбора</string>
 </resources>
