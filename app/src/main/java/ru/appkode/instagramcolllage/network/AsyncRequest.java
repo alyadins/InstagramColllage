@@ -46,7 +46,12 @@ public class AsyncRequest extends AsyncTask<List<NameValuePair>, Integer, String
             HttpProtocolParams.setUseExpectContinue(httpClient.getParams(), false);
 
             HttpResponse response;
-            HttpGet getRequest = new HttpGet(addParamsToUrl(url, lists[0]));
+            HttpGet getRequest;
+            if (lists[0].size() == 0) {
+                getRequest = new HttpGet(url);
+            } else {
+                getRequest = new HttpGet(addParamsToUrl(url, lists[0]));
+            }
             response = httpClient.execute(getRequest);
 
             in = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));

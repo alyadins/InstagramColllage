@@ -31,6 +31,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import ru.appkode.instagramcolllage.network.AsyncRequest;
@@ -43,6 +45,7 @@ public class Main extends Activity implements AsyncRequest.OnRequestCompleteList
     public static final String SEARCH_URL = "/users/search";
     private static final int SEARCH_REQUEST_ID = 1;
     private static final int USER_INFO_REQUEST_ID = 2;
+    private static final int NUMBER_OF_BEST_PHOTO = 20;
 
     private String clientId;
 
@@ -50,7 +53,7 @@ public class Main extends Activity implements AsyncRequest.OnRequestCompleteList
     private ProgressDialog progressDialog;
 
     private List<User> users;
-    private List<UserPost> posts;
+    private List<UserPhoto> posts;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,7 +64,7 @@ public class Main extends Activity implements AsyncRequest.OnRequestCompleteList
         nickNameEditText = (EditText) findViewById(R.id.nick_edit);
 
         users = new ArrayList<User>();
-        posts = new ArrayList<UserPost>();
+        posts = new ArrayList<UserPhoto>();
     }
 
     @Override
@@ -104,10 +107,10 @@ public class Main extends Activity implements AsyncRequest.OnRequestCompleteList
                 parseSearch(response);
                 break;
             case USER_INFO_REQUEST_ID:
-                if (progressDialog != null) {
-                    progressDialog.dismiss();
-                }
-                posts.clear();
+//                if (progressDialog != null) {
+//                    progressDialog.dismiss();
+//                }
+                Log.d("TEST", response);
                 parseUserInfo(response);
                 break;
         }
@@ -225,6 +228,7 @@ public class Main extends Activity implements AsyncRequest.OnRequestCompleteList
 
         List<NameValuePair> params= new ArrayList<NameValuePair>();
         params.add(new BasicNameValuePair("client_id", clientId));
+        params.add(new BasicNameValuePair("count", "0"));
 
         StringBuilder builder = new StringBuilder();
         String url = builder.append(APIURL)
@@ -233,6 +237,7 @@ public class Main extends Activity implements AsyncRequest.OnRequestCompleteList
                 .append("/media/recent/")
                 .toString();
         AsyncRequest request = new AsyncRequest(url, USER_INFO_REQUEST_ID, this);
+        posts.clear();
 
         request.execute(params);
     }
@@ -243,6 +248,9 @@ public class Main extends Activity implements AsyncRequest.OnRequestCompleteList
             JSONObject root = new JSONObject(response);
             code = root.getJSONObject("meta").getInt("code");
             if (code != 200) {
+                if (progressDialog != null) {
+                    progressDialog.dismiss();
+                }
                 showErrorMessage();
                 return;
             }
@@ -250,52 +258,77 @@ public class Main extends Activity implements AsyncRequest.OnRequestCompleteList
             final JSONArray data = root.getJSONArray("data");
 
             for (int i = 0; i < data.length(); i++) {
-                final JSONObject post = data.getJSONObject(i);
+                JSONObject post = data.getJSONObject(i);
 
-                final int likes = post.getJSONObject("likes").getInt("count");
+                int likeNumber = post.getJSONObject("likes").getInt("count");
+                String id = post.getString("id");
                 String imageUrl = post.getJSONObject("images").getJSONObject("standard_resolution").getString("url");
 
-                ImageDownloader downloader = new ImageDownloader();
-                final int finalI = i;
-                downloader.setOnImageDowloadCompleteListener(new ImageDownloader.OnImageDowloadCompeleteListener() {
-                    @Override
-                    public void onImageDownloadComplete(Bitmap bitmap) {
-                        posts.add(new UserPost(bitmap, likes));
-                        if (finalI == data.length() - 1) {
-                            onParseUserInfoComplete();
-                        }
-                    }
-                });
-                downloader.execute(imageUrl);
+                posts.add(new UserPhoto(likeNumber, id, imageUrl));
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-    }
 
-    private void onParseUserInfoComplete() {
+            Log.d("TEST", !root.getJSONObject("pagination").isNull("next_url") + "");
+            if (!root.getJSONObject("pagination").isNull("next_url")) {
+                String url = root.getJSONObject("pagination").getString("next_url").replace("\\", "");
+                AsyncRequest request = new AsyncRequest(url, USER_INFO_REQUEST_ID, this);
+                request.execute(new ArrayList<NameValuePair>());
+            } else {
+                Collections.sort(posts, comp);
+
+                final List<UserPhoto> bestPhotos;
+                if (posts.size() > NUMBER_OF_BEST_PHOTO)
+                    bestPhotos = posts.subList(0, NUMBER_OF_BEST_PHOTO);
+                else
+                    bestPhotos = posts;
+
+                for (int i = 0; i < bestPhotos.size(); i++) {
+                    final UserPhoto bp = bestPhotos.get(i);
+                    String url = bp.imageUrl;
+                    ImageDownloader downloader = new ImageDownloader();
+                    final int finalI = i;
+                    downloader.setOnImageDowloadCompleteListener(new ImageDownloader.OnImageDowloadCompeleteListener() {
+                        @Override
+                        public void onImageDownloadComplete(Bitmap bitmap) {
+                            bp.image = bitmap;
+                            if (finalI == bestPhotos.size() - 1) {
+                                onParseUserInfoComplete(bestPhotos);
+                            }
+                        }
+                    });
+                    downloader.execute(url);
+                }
+            }
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+    private void onParseUserInfoComplete(List<UserPhoto> photos) {
+        if (progressDialog != null) {
+            progressDialog.dismiss();
+        }
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         ListView listView = new ListView(this);
         listView.setLayoutParams(
                 new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
 
         builder.setView(listView);
-        final AlertDialog dialog = builder.create();
-        TestAdapter adapter = new TestAdapter(this, R.layout.list_with_image_item, posts);
+        AlertDialog dialog = builder.create();
+        TestAdapter adapter = new TestAdapter(this, R.layout.list_with_image_item, photos);
         listView.setAdapter(adapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                userInfoRequest(users.get(position).id);
-                if (dialog != null) {
-                }
-            }
-        });
-
         dialog.show();
     }
 
+    Comparator<UserPhoto> comp = new Comparator<UserPhoto>() {
+        @Override
+        public int compare(UserPhoto lhs, UserPhoto rhs) {
+            return  rhs.likes - lhs.likes;
+        }
+    };
+
     private void showErrorMessage() {
+        Log.d("TEST", "showing error message");
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.erorr_title)
                 .setMessage(R.string.error_text)
@@ -305,7 +338,7 @@ public class Main extends Activity implements AsyncRequest.OnRequestCompleteList
                         dialog.dismiss();
                     }
                 })
-                .create();
+                .create().show();
     }
 
     private ProgressDialog createProgressDialog() {
@@ -378,12 +411,12 @@ class ListDialogAdapter extends ArrayAdapter<User> {
     }
 }
 
-class TestAdapter extends ArrayAdapter<UserPost> {
+class TestAdapter extends ArrayAdapter<UserPhoto> {
 
-    private List<UserPost> posts;
+    private List<UserPhoto> posts;
     private int resId;
 
-    public TestAdapter(Context context, int resource, List<UserPost> posts) {
+    public TestAdapter(Context context, int resource, List<UserPhoto> posts) {
         super(context, resource, posts);
         this.posts = posts;
         this.resId = resource;
@@ -410,7 +443,7 @@ class TestAdapter extends ArrayAdapter<UserPost> {
             holder = (ViewHolder) rowView.getTag();
         }
 
-        UserPost post = posts.get(position);
+        UserPhoto post = posts.get(position);
         holder.likes.setText("Лайки " + post.likes);
         holder.image.setImageBitmap(post.image);
 

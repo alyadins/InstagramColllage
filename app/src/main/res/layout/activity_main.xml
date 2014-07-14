@@ -18,6 +18,7 @@
         android:id="@+id/nick_edit"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:gravity="center"/>
+        android:gravity="center"
+        android:text="prickly_miracle"/>
 
 </LinearLayout>
