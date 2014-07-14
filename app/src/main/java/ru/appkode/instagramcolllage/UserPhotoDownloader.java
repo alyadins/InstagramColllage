@@ -40,13 +40,20 @@ public class UserPhotoDownloader implements AsyncRequest.OnRequestCompleteListen
     private OnPhotoDownloadListener listener;
 
     public UserPhotoDownloader(Context context, String id) {
+        this(context);
         this.id = id;
-        this.context = context;
+    }
 
+    public UserPhotoDownloader(Context context) {
+        this.context = context;
         clientId = context.getString(R.string.client_id);
 
         bestPhoto = new ArrayList<UserPhoto>();
         photo = new ArrayList<UserPhoto>();
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public void download() {

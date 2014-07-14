@@ -39,16 +39,15 @@ public class UserSearch implements AsyncRequest.OnRequestCompleteListener {
     public OnSearchCompleteListener listener;
 
     public UserSearch(Context context, String nickName) {
+        this(context);
         this.nickName = nickName;
-        this.context = context;
-
-        clientId = context.getString(R.string.client_id);
-
-        users = new ArrayList<User>();
     }
 
     public UserSearch(Context context) {
         this.context = context;
+
+        clientId = context.getString(R.string.client_id);
+        users = new ArrayList<User>();
     }
 
     public void search() {
