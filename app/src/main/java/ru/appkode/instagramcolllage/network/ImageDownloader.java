@@ -11,7 +11,7 @@ import java.io.InputStream;
  */
 public class ImageDownloader extends AsyncTask<String, Void, Bitmap> {
 
-    private OnImageDowloadCompeleteListener listener;
+    private OnImageDownloadCompleteListener listener;
 
     protected Bitmap doInBackground(String... urls) {
         String url = urls[0];
@@ -31,11 +31,11 @@ public class ImageDownloader extends AsyncTask<String, Void, Bitmap> {
         }
     }
 
-    public void setOnImageDowloadCompleteListener(OnImageDowloadCompeleteListener l) {
+    public void setOnImageDowloadCompleteListener(OnImageDownloadCompleteListener l) {
         this.listener = l;
     }
 
-    public interface OnImageDowloadCompeleteListener {
+    public interface OnImageDownloadCompleteListener {
         public void onImageDownloadComplete(Bitmap bitmap);
     }
 }
