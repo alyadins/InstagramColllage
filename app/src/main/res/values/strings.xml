@@ -3,6 +3,19 @@
 
     <string name="app_name">Instagram Colllage</string>
     <string name="nick_name">Ник:</string>
-    <string name="make_collage">Сделать колаж</string>
+    <string name="make_collage">Давай колаж</string>
 
+    
+    <string name="client_id">d20128b4281f4d7d87048ba0ce730e3a</string>
+
+    <string name="erorr_title">Ошибка</string>
+    <string name="error_text">Что то пошло не так</string>
+    <string name="ok">Окай</string>
+
+    <string name="wait_message">Пожалуйста подождите</string>
+
+    <string name="choose_user">Выберите пользователя</string>
+    <string name="user_not_found">Пользователь не найден</string>
+
+    <string name="network_error">Проверьте подключение</string>
 </resources>
