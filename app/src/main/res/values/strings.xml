@@ -22,4 +22,6 @@
     <string name="selected_photo"> выбрано</string>
 
     <string name="long_press_tip">Longpress для выбора</string>
+
+    <string name="print">Печать</string>
 </resources>

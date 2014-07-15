@@ -2,30 +2,21 @@ package ru.appkode.instagramcolllage;
 
 import android.app.Activity;
 import android.app.FragmentTransaction;
-import android.app.ProgressDialog;
-import android.content.Context;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
+import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.widget.EditText;
-import android.widget.FrameLayout;
+import android.support.v4.print.PrintHelper;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.List;
 
 import ru.appkode.instagramcolllage.fragments.ChoosePhotoFragment;
 import ru.appkode.instagramcolllage.fragments.CollageFragment;
 import ru.appkode.instagramcolllage.fragments.MainFragment;
-import ru.appkode.instagramcolllage.gui.OkDialog;
 
-
-public class Main extends Activity implements MainFragment.OnDownloadComplete, ChoosePhotoFragment.OnPhotoSelectedListener {
+public class Main extends Activity implements MainFragment.OnDownloadComplete, ChoosePhotoFragment.OnPhotoSelectedListener, CollageFragment.OnPrintListener {
 
     public static final String APIURL = "https://api.instagram.com/v1";
-    public static final String CHOOSE_PHOTO_TAG = "CHOOSE_PHOTO_TAG";
 
     public UserSearch userSearch;
     public UserPhotoDownloader photoDownloader;
@@ -34,7 +25,7 @@ public class Main extends Activity implements MainFragment.OnDownloadComplete, C
 
     private FragmentTransaction fragmentTransaction;
 
-    private List<UserPhoto> theBestPhoto;
+    public List<UserPhoto> theBestPhoto;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,8 +57,21 @@ public class Main extends Activity implements MainFragment.OnDownloadComplete, C
         this.theBestPhoto = theBestPhoto;
         fragmentTransaction = getFragmentManager().beginTransaction();
         CollageFragment collageFragment = new CollageFragment();
+        collageFragment.setOnPrintListener(this);
         fragmentTransaction.replace(R.id.container, collageFragment);
         fragmentTransaction.commit();
+    }
+
+    @Override
+    public void onPrint(Bitmap bitmap) {
+        PrintHelper photoPrinter = new PrintHelper(this);
+        photoPrinter.setScaleMode(PrintHelper.SCALE_MODE_FIT);
+        photoPrinter.printBitmap("collage_" + getFormattedDate(), bitmap);
+    }
+
+    private String getFormattedDate() {
+        SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy_HH:mm");
+        return format.format(Calendar.getInstance().getTime());
     }
 }
 

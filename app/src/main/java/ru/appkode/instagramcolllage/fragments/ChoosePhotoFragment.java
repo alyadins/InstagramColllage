@@ -1,10 +1,7 @@
 package ru.appkode.instagramcolllage.fragments;
 
-import android.app.Activity;
 import android.app.Fragment;
-import android.graphics.Color;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -12,7 +9,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
-import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.Toast;
 
@@ -22,13 +18,8 @@ import java.util.List;
 import ru.appkode.instagramcolllage.Main;
 import ru.appkode.instagramcolllage.R;
 import ru.appkode.instagramcolllage.UserPhoto;
-import ru.appkode.instagramcolllage.UserPhotoDownloader;
-import ru.appkode.instagramcolllage.UserSearch;
 import ru.appkode.instagramcolllage.gui.PhotoGridViewAdapter;
 
-/**
- * Created by lexer on 14.07.14.
- */
 public class ChoosePhotoFragment extends Fragment implements AbsListView.MultiChoiceModeListener {
 
     private GridView gridView;
@@ -92,8 +83,10 @@ public class ChoosePhotoFragment extends Fragment implements AbsListView.MultiCh
 
     @Override
     public void onDestroyActionMode(ActionMode mode) {
-        if (listener != null) {
-            listener.onPhotoSelect(theBestOfTheBestPhoto);
+        if (!(theBestOfTheBestPhoto.size() == 0)) {
+            if (listener != null) {
+                listener.onPhotoSelect(theBestOfTheBestPhoto);
+            }
         }
     }
 
