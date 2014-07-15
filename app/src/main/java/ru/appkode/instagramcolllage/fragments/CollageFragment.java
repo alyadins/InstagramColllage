@@ -4,6 +4,7 @@ import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -21,7 +22,7 @@ import ru.appkode.instagramcolllage.UserPhoto;
 
 public class CollageFragment extends Fragment implements CollageCreator.OnCollageCreatedListener {
 
-
+    public static final String TAG = "collageFragment";
 
     private ImageView collageImage;
 
@@ -37,8 +38,6 @@ public class CollageFragment extends Fragment implements CollageCreator.OnCollag
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        bestPhotos = ((Main) getActivity()).theBestPhoto;
-        progressDialog = ((Main) getActivity()).progressDialog;
     }
 
     @Override
@@ -46,17 +45,20 @@ public class CollageFragment extends Fragment implements CollageCreator.OnCollag
         View v = inflater.inflate(R.layout.collage_fragment, null);
 
         collageImage = (ImageView) v.findViewById(R.id.collage_image);
+
         return v;
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        progressDialog.setMessage(getString(R.string.creating_collage));
-        progressDialog.show();
+        if(collage == null) {
+            getProgressDialog().setMessage(getString(R.string.creating_collage));
+            getProgressDialog().show();
 
-        CollageCreator collageCreator = new CollageCreator(this);
-        collageCreator.execute(bestPhotos);
+            CollageCreator collageCreator = new CollageCreator(this);
+            collageCreator.execute(bestPhotos);
+        }
     }
 
     @Override
@@ -85,12 +87,24 @@ public class CollageFragment extends Fragment implements CollageCreator.OnCollag
 
     @Override
     public void onCollageCreated(Bitmap bitmap) {
-        progressDialog.hide();
+        getProgressDialog().hide();
         collageImage.setImageBitmap(bitmap);
         this.collage = bitmap;
     }
 
     public interface OnPrintListener {
         public void onPrint(Bitmap bitmap);
+    }
+
+    public void setBestPhotos(List<UserPhoto> bestPhotos) {
+        this.bestPhotos = bestPhotos;
+    }
+
+    private ProgressDialog getProgressDialog() {
+        if (progressDialog == null) {
+            progressDialog = new ProgressDialog(getActivity());
+            progressDialog.setCancelable(false);
+        }
+        return progressDialog;
     }
 }

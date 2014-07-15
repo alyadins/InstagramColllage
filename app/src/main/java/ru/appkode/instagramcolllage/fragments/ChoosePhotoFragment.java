@@ -2,6 +2,7 @@ package ru.appkode.instagramcolllage.fragments;
 
 import android.app.Fragment;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -21,6 +22,7 @@ import ru.appkode.instagramcolllage.UserPhoto;
 import ru.appkode.instagramcolllage.gui.PhotoGridViewAdapter;
 
 public class ChoosePhotoFragment extends Fragment implements AbsListView.MultiChoiceModeListener {
+    public static final String TAG = "choosePhotoFragment";
 
     private GridView gridView;
     private PhotoGridViewAdapter gridViewAdapter;
@@ -34,10 +36,13 @@ public class ChoosePhotoFragment extends Fragment implements AbsListView.MultiCh
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        this.bestPhoto = ((Main) getActivity()).photoDownloader.bestPhoto;
 
         Toast.makeText(getActivity(), R.string.long_press_tip, Toast.LENGTH_SHORT).show();
+    }
 
+    @Override
+    public void onStart() {
+        super.onStart();
         theBestOfTheBestPhoto = new ArrayList<UserPhoto>();
     }
 
@@ -56,6 +61,7 @@ public class ChoosePhotoFragment extends Fragment implements AbsListView.MultiCh
 
     @Override
     public void onItemCheckedStateChanged(ActionMode mode, int position, long id, boolean checked) {
+        Log.d("TEST", "onItemChecked");
         mode.setSubtitle(gridView.getCheckedItemCount() + " " + getActivity().getString(R.string.selected_photo));
 
         if (checked) {
@@ -68,26 +74,28 @@ public class ChoosePhotoFragment extends Fragment implements AbsListView.MultiCh
     @Override
     public boolean onCreateActionMode(ActionMode mode, Menu menu) {
         mode.setTitle(R.string.choose_photo);
+        mode.getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
     @Override
     public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-        return true;
+        return false;
     }
 
     @Override
     public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-        return true;
-    }
-
-    @Override
-    public void onDestroyActionMode(ActionMode mode) {
         if (!(theBestOfTheBestPhoto.size() == 0)) {
             if (listener != null) {
                 listener.onPhotoSelect(theBestOfTheBestPhoto);
             }
         }
+        mode.finish();
+        return true;
+    }
+
+    @Override
+    public void onDestroyActionMode(ActionMode mode) {
     }
 
     public void setOnPhotoSelectedListener(OnPhotoSelectedListener listener) {
@@ -96,5 +104,9 @@ public class ChoosePhotoFragment extends Fragment implements AbsListView.MultiCh
 
     public interface OnPhotoSelectedListener {
         public void onPhotoSelect(List<UserPhoto> theBestPhoto);
+    }
+
+    public void setBestPhoto(List<UserPhoto> bestPhoto) {
+        this.bestPhoto = bestPhoto;
     }
 }

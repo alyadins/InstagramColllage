@@ -1,10 +1,12 @@
 package ru.appkode.instagramcolllage;
 
 import android.app.Activity;
+import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.print.PrintHelper;
 
 import java.text.SimpleDateFormat;
@@ -15,58 +17,70 @@ import ru.appkode.instagramcolllage.fragments.ChoosePhotoFragment;
 import ru.appkode.instagramcolllage.fragments.CollageFragment;
 import ru.appkode.instagramcolllage.fragments.MainFragment;
 
-public class Main extends Activity implements MainFragment.OnDownloadComplete, ChoosePhotoFragment.OnPhotoSelectedListener, CollageFragment.OnPrintListener {
+public class Main extends FragmentActivity implements MainFragment.OnDownloadComplete, ChoosePhotoFragment.OnPhotoSelectedListener, CollageFragment.OnPrintListener {
 
     public static final String APIURL = "https://api.instagram.com/v1";
 
-    public UserSearch userSearch;
-    public UserPhotoDownloader photoDownloader;
-
-    private MainFragment mainFragment;
-
     private FragmentTransaction fragmentTransaction;
-
-    public List<UserPhoto> theBestPhoto;
-
-    public ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        userSearch = new UserSearch(this);
-        photoDownloader = new UserPhotoDownloader(this);
+        FragmentManager manager = getFragmentManager();
 
-        progressDialog = new ProgressDialog(this);
-        progressDialog.setMessage(getString(R.string.wait_message));
-        progressDialog.setCancelable(false);
+        MainFragment mainFragment;
+        mainFragment = (MainFragment) manager.findFragmentByTag(MainFragment.TAG);
 
-        mainFragment = new MainFragment();
-        mainFragment.setOnDownloadCompleteListener(this);
-
-        fragmentTransaction = getFragmentManager().beginTransaction();
-        fragmentTransaction.add(R.id.container, mainFragment);
-        fragmentTransaction.commit();
+        if (mainFragment == null) {
+            mainFragment = new MainFragment();
+            mainFragment.setOnDownloadCompleteListener(this);
+            fragmentTransaction = getFragmentManager().beginTransaction();
+            fragmentTransaction.setCustomAnimations(R.anim.enter, R.anim.exit, R.anim.enter, R.anim.exit);
+            fragmentTransaction.add(R.id.container, mainFragment, mainFragment.TAG);
+            fragmentTransaction.commit();
+        }
     }
 
     @Override
     public void onDownloadComplete(MainFragment fragment, int status) {
-        fragmentTransaction = getFragmentManager().beginTransaction();
-        ChoosePhotoFragment choosePhotoFragment = new ChoosePhotoFragment();
-        choosePhotoFragment.setOnPhotoSelectedListener(this);
-        fragmentTransaction.replace(R.id.container, choosePhotoFragment);
-        fragmentTransaction.commit();
+
+        FragmentManager manager = getFragmentManager();
+
+        ChoosePhotoFragment choosePhotoFragment;
+        choosePhotoFragment = (ChoosePhotoFragment) manager.findFragmentByTag(ChoosePhotoFragment.TAG);
+
+        if (choosePhotoFragment == null) {
+            fragmentTransaction = getFragmentManager().beginTransaction();
+            choosePhotoFragment = new ChoosePhotoFragment();
+            choosePhotoFragment.setOnPhotoSelectedListener(this);
+            choosePhotoFragment.setBestPhoto(fragment.photoDownloader.bestPhoto);
+            fragmentTransaction.addToBackStack(null);
+            fragmentTransaction.setCustomAnimations(R.anim.enter, R.anim.exit, R.anim.enter, R.anim.exit);
+            fragmentTransaction.replace(R.id.container, choosePhotoFragment, ChoosePhotoFragment.TAG);
+            fragmentTransaction.commit();
+        }
     }
 
     @Override
     public void onPhotoSelect(List<UserPhoto> theBestPhoto) {
-        this.theBestPhoto = theBestPhoto;
-        fragmentTransaction = getFragmentManager().beginTransaction();
-        CollageFragment collageFragment = new CollageFragment();
-        collageFragment.setOnPrintListener(this);
-        fragmentTransaction.replace(R.id.container, collageFragment);
-        fragmentTransaction.commit();
+
+        FragmentManager manager = getFragmentManager();
+
+        CollageFragment collageFragment;
+        collageFragment = (CollageFragment) manager.findFragmentByTag(CollageFragment.TAG);
+
+        if (collageFragment == null) {
+            fragmentTransaction = getFragmentManager().beginTransaction();
+            collageFragment = new CollageFragment();
+            collageFragment.setBestPhotos(theBestPhoto);
+            collageFragment.setOnPrintListener(this);
+            fragmentTransaction.addToBackStack(null);
+            fragmentTransaction.setCustomAnimations(R.anim.enter, R.anim.exit, R.anim.enter, R.anim.exit);
+            fragmentTransaction.replace(R.id.container, collageFragment, CollageFragment.TAG);
+            fragmentTransaction.commit();
+        }
     }
 
     @Override
@@ -80,7 +94,18 @@ public class Main extends Activity implements MainFragment.OnDownloadComplete, C
         SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy_HH:mm");
         return format.format(Calendar.getInstance().getTime());
     }
+
+    @Override
+    public void onBackPressed() {
+        FragmentManager manager = getFragmentManager();
+        if (manager.getBackStackEntryCount() > 0) {
+            manager.popBackStack();
+        } else {
+            super.onBackPressed();
+        }
+    }
 }
+
 
 
 

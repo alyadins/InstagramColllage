@@ -23,11 +23,12 @@ import ru.appkode.instagramcolllage.gui.OkDialog;
 
 public class MainFragment extends Fragment implements UserSearch.OnSearchCompleteListener, UserPhotoDownloader.OnPhotoDownloadListener {
     public static final int STATUS_OK = 1;
+    public static final String TAG = "mainFragment";
 
     private EditText nickNameEditText;
 
-    private UserSearch userSearch;
-    private UserPhotoDownloader photoDownloader;
+    public UserSearch userSearch;
+    public UserPhotoDownloader photoDownloader;
 
     private OnDownloadComplete listener;
 
@@ -38,9 +39,13 @@ public class MainFragment extends Fragment implements UserSearch.OnSearchComplet
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        this.userSearch = ((Main)getActivity()).userSearch;
-        this.photoDownloader = ((Main) getActivity()).photoDownloader;
-        this.progressDialog = ((Main) getActivity()).progressDialog;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        userSearch = new UserSearch(getActivity());
+        photoDownloader = new UserPhotoDownloader(getActivity());
     }
 
     @Override
@@ -67,8 +72,8 @@ public class MainFragment extends Fragment implements UserSearch.OnSearchComplet
                     String nickName = nickNameEditText.getText().toString();
                     userSearch.setNickName(nickName);
                     userSearch.setOnSearchCompleteListener(this);
-                    progressDialog.setMessage(getString(R.string.user_search));
-                    progressDialog.show();
+                    getProgressDialog().setMessage(getString(R.string.user_search));
+                    getProgressDialog().show();
                     userSearch.search();
                 }
                 else {
@@ -83,20 +88,21 @@ public class MainFragment extends Fragment implements UserSearch.OnSearchComplet
     @Override
     public void onSearchComplete(UserSearch request, String userId) {
         if ((userId.equals(UserSearch.USER_NOT_FOUND) || userId.equals(UserSearch.CANCEL))) {
-            progressDialog.hide();
+            getProgressDialog().hide();
         } else {
             photoDownloader.setId(userId);
             photoDownloader.setOnPhotoDownloadListener(this);
-            progressDialog.setMessage(getString(R.string.photo_download));
-            progressDialog.show();
+            getProgressDialog().setMessage(getString(R.string.photo_download));
+            getProgressDialog().show();
+
             photoDownloader.download();
         }
     }
 
     @Override
     public void onPhotoDownload(UserPhotoDownloader downloader, int status) {
-        if (progressDialog.isShowing()) {
-            progressDialog.hide();
+        if (getProgressDialog().isShowing()) {
+            getProgressDialog().hide();
         }
 
         if (listener != null) {
@@ -129,5 +135,14 @@ public class MainFragment extends Fragment implements UserSearch.OnSearchComplet
 
     public interface OnDownloadComplete {
         public void onDownloadComplete(MainFragment fragment, int status);
+    }
+
+    private ProgressDialog getProgressDialog() {
+        if (progressDialog == null) {
+            progressDialog = new ProgressDialog(getActivity());
+            progressDialog.setCancelable(false);
+            progressDialog.setMessage(getString(R.string.wait_message));
+        }
+        return progressDialog;
     }
 }
