@@ -46,6 +46,10 @@ public class MainFragment extends Fragment implements UserSearch.OnSearchComplet
         super.onStart();
         userSearch = new UserSearch(getActivity());
         photoDownloader = new UserPhotoDownloader(getActivity());
+
+        progressDialog = new ProgressDialog(getActivity());
+        progressDialog.setCancelable(false);
+        progressDialog.setMessage(getString(R.string.wait_message));
     }
 
     @Override
@@ -72,8 +76,8 @@ public class MainFragment extends Fragment implements UserSearch.OnSearchComplet
                     String nickName = nickNameEditText.getText().toString();
                     userSearch.setNickName(nickName);
                     userSearch.setOnSearchCompleteListener(this);
-                    getProgressDialog().setMessage(getString(R.string.user_search));
-                    getProgressDialog().show();
+                    progressDialog.setMessage(getString(R.string.user_search));
+                    progressDialog.show();
                     userSearch.search();
                 }
                 else {
@@ -88,12 +92,16 @@ public class MainFragment extends Fragment implements UserSearch.OnSearchComplet
     @Override
     public void onSearchComplete(UserSearch request, String userId) {
         if ((userId.equals(UserSearch.USER_NOT_FOUND) || userId.equals(UserSearch.CANCEL))) {
-            getProgressDialog().hide();
+            progressDialog.dismiss();
         } else {
+            progressDialog.dismiss();
             photoDownloader.setId(userId);
             photoDownloader.setOnPhotoDownloadListener(this);
-            getProgressDialog().setMessage(getString(R.string.photo_download));
-            getProgressDialog().show();
+
+            progressDialog = new ProgressDialog(getActivity());
+            progressDialog.setMessage(getString(R.string.photo_download));
+            progressDialog.setCancelable(false);
+            progressDialog.show();
 
             photoDownloader.download();
         }
@@ -101,8 +109,8 @@ public class MainFragment extends Fragment implements UserSearch.OnSearchComplet
 
     @Override
     public void onPhotoDownload(UserPhotoDownloader downloader, int status) {
-        if (getProgressDialog().isShowing()) {
-            getProgressDialog().hide();
+        if (progressDialog.isShowing()) {
+            progressDialog.dismiss();
         }
 
         if (listener != null) {
@@ -135,14 +143,5 @@ public class MainFragment extends Fragment implements UserSearch.OnSearchComplet
 
     public interface OnDownloadComplete {
         public void onDownloadComplete(MainFragment fragment, int status);
-    }
-
-    private ProgressDialog getProgressDialog() {
-        if (progressDialog == null) {
-            progressDialog = new ProgressDialog(getActivity());
-            progressDialog.setCancelable(false);
-            progressDialog.setMessage(getString(R.string.wait_message));
-        }
-        return progressDialog;
     }
 }

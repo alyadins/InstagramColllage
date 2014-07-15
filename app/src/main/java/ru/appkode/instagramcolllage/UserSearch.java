@@ -121,8 +121,9 @@ public class UserSearch implements AsyncRequest.OnRequestCompleteListener {
             builder.setTitle(R.string.choose_user);
 
             ListView listView = new ListView(context);
+            int height = (int) (context.getResources().getDisplayMetrics().heightPixels * 0.2);
             listView.setLayoutParams(
-                    new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+                    new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, height));
 
             builder.setView(listView);
             final AlertDialog dialog = builder.create();

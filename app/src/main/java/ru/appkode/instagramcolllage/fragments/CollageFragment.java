@@ -53,8 +53,10 @@ public class CollageFragment extends Fragment implements CollageCreator.OnCollag
     public void onStart() {
         super.onStart();
         if(collage == null) {
-            getProgressDialog().setMessage(getString(R.string.creating_collage));
-            getProgressDialog().show();
+            progressDialog = new ProgressDialog(getActivity());
+            progressDialog.setCancelable(false);
+            progressDialog.setMessage(getString(R.string.creating_collage));
+            progressDialog.show();
 
             CollageCreator collageCreator = new CollageCreator(this);
             collageCreator.execute(bestPhotos);
@@ -87,7 +89,7 @@ public class CollageFragment extends Fragment implements CollageCreator.OnCollag
 
     @Override
     public void onCollageCreated(Bitmap bitmap) {
-        getProgressDialog().hide();
+        progressDialog.dismiss();
         collageImage.setImageBitmap(bitmap);
         this.collage = bitmap;
     }
@@ -98,13 +100,5 @@ public class CollageFragment extends Fragment implements CollageCreator.OnCollag
 
     public void setBestPhotos(List<UserPhoto> bestPhotos) {
         this.bestPhotos = bestPhotos;
-    }
-
-    private ProgressDialog getProgressDialog() {
-        if (progressDialog == null) {
-            progressDialog = new ProgressDialog(getActivity());
-            progressDialog.setCancelable(false);
-        }
-        return progressDialog;
     }
 }
