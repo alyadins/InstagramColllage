@@ -2,6 +2,7 @@ package ru.appkode.instagramcolllage;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.view.View;
 import android.widget.AdapterView;
@@ -22,12 +23,11 @@ import ru.appkode.instagramcolllage.gui.UserListAdapter;
 import ru.appkode.instagramcolllage.network.AsyncRequest;
 import ru.appkode.instagramcolllage.network.ImageDownloader;
 
-/**
- * Created by lexer on 14.07.14.
- */
+
 public class UserSearch implements AsyncRequest.OnRequestCompleteListener {
     private static final int SEARCH_REQUEST_ID = 1;
     public static final String USER_NOT_FOUND = "-1";
+    public static final String CANCEL = "-2";
 
     private String nickName;
     private Context context;
@@ -138,6 +138,12 @@ public class UserSearch implements AsyncRequest.OnRequestCompleteListener {
                 }
             });
 
+            dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    listener.onSearchComplete(UserSearch.this, CANCEL);
+                }
+            });
             dialog.show();
         } else {
             finishSearch(users.get(0).id);

@@ -2,6 +2,7 @@ package ru.appkode.instagramcolllage;
 
 import android.app.Activity;
 import android.app.FragmentTransaction;
+import android.app.ProgressDialog;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v4.print.PrintHelper;
@@ -27,6 +28,8 @@ public class Main extends Activity implements MainFragment.OnDownloadComplete, C
 
     public List<UserPhoto> theBestPhoto;
 
+    public ProgressDialog progressDialog;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -34,6 +37,10 @@ public class Main extends Activity implements MainFragment.OnDownloadComplete, C
 
         userSearch = new UserSearch(this);
         photoDownloader = new UserPhotoDownloader(this);
+
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage(getString(R.string.wait_message));
+        progressDialog.setCancelable(false);
 
         mainFragment = new MainFragment();
         mainFragment.setOnDownloadCompleteListener(this);

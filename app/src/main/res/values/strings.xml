@@ -24,4 +24,7 @@
     <string name="long_press_tip">Longpress для выбора</string>
 
     <string name="print">Печать</string>
+    <string name="user_search">Поиск пользователя</string>
+    <string name="photo_download">Загрузка фото</string>
+    <string name="creating_collage">Создание коллажа</string>
 </resources>
